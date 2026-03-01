@@ -5,120 +5,143 @@
 - Member 2 — https://github.com/<member2-username>
 - Member 3 — https://github.com/<member3-username>
 
-> (No student IDs required)
-
----
-
 ## Project Description
-SkillUp is a mini learning platform built with **Next.js (JavaScript)** and **MongoDB**.
-It supports authentication, course management, and student enrollments using **REST API CRUD** operations across **three data models**:
+SkillUp is a mini learning platform built with **Next.js (App Router, JavaScript)** and **MongoDB**.  
+It provides authentication, role-based access (admin/student), and REST API CRUD operations across 3 core entities:
 - Users
 - Courses
 - Enrollments
 
-The system includes separate capabilities for **Admin** and **Student** roles and is deployed on a **VM** (no serverless).
-
----
+The project is designed for VM deployment (no serverless requirement) and follows assignment constraints.
 
 ## Tech Stack
-- Next.js (App Router) — JavaScript
-- MongoDB (Self-hosted on VM / local)
-- Mongoose (ODM)
-- JWT Authentication (stored in HttpOnly Cookie)
-- TailwindCSS (UI styling)
-- Nginx (reverse proxy on VM)
-- PM2 (Node process manager)
+- Next.js 16 (App Router)
+- React 19
+- MongoDB + Mongoose
+- JWT Auth (HttpOnly cookie)
+- TailwindCSS
+- Nginx + PM2 (for VM production)
 
----
-
-## User Roles
+## Roles and Permissions
 ### Student
 - Register / Login
-- View course catalog
-- Enroll in a course
-- View enrolled courses (My Courses)
-- Unenroll from a course
+- View course catalog + search
+- Enroll in courses
+- View enrolled courses
+- Unenroll from courses
 
 ### Admin
 - Manage courses (Create / Read / Update / Delete)
 - Manage users (Read / Update role / Delete)
 - Manage enrollments (Read / Update progress / Delete)
 
----
-
 ## Data Models (3 CRUD Entities)
 ### 1) User
-- Create: Register
-- Read: Admin view users
-- Update: Admin change role (student/admin)
-- Delete: Admin delete user
+- Create: register student
+- Read: admin list users
+- Update: admin update user role
+- Delete: admin delete user
 
 ### 2) Course
-- Create: Admin add course
-- Read: Student course list + search
-- Update: Admin edit course
-- Delete: Admin delete course
+- Create: admin create course
+- Read: authenticated users list/search courses
+- Update: admin edit course
+- Delete: admin delete course
 
 ### 3) Enrollment
-- Create: Student enroll course
-- Read: Student “My Courses” / Admin view all enrollments
-- Update: Admin update progress (optional feature)
-- Delete: Student unenroll / Admin delete enrollment
-
----
+- Create: student enroll in course
+- Read: student own enrollments, admin all enrollments
+- Update: admin update progress
+- Delete: student unenroll / admin delete enrollment
 
 ## REST API Endpoints
 ### Auth
-- `POST /api/auth/register` — create student user
-- `POST /api/auth/login` — login and set cookie token
-- `POST /api/auth/logout` — clear cookie token
-- `POST /api/auth/seed-admin` — create initial admin user (one-time)
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `POST /api/auth/seed-admin` (one-time admin seed)
 
-### Courses (Admin CRUD + Student Read)
-- `GET /api/courses?q=` — list/search courses
-- `POST /api/courses` — create course (admin)
-- `GET /api/courses/:id` — read course
-- `PUT /api/courses/:id` — update course (admin)
-- `DELETE /api/courses/:id` — delete course (admin)
+### Courses
+- `GET /api/courses?q=`
+- `POST /api/courses` (admin)
+- `GET /api/courses/:id`
+- `PUT /api/courses/:id` (admin)
+- `DELETE /api/courses/:id` (admin)
 
-### Users (Admin CRUD)
-- `GET /api/users` — list users (admin)
-- `PUT /api/users/:id` — update user (admin)
-- `DELETE /api/users/:id` — delete user (admin)
+### Users
+- `GET /api/users` (admin)
+- `PUT /api/users/:id` (admin)
+- `DELETE /api/users/:id` (admin)
 
-### Enrollments (CRUD)
-- `GET /api/enrollments` — list enrollments (admin: all, student: own)
-- `POST /api/enrollments` — enroll (student)
-- `PUT /api/enrollments/:id` — update progress (admin) / allowed owner update if enabled
-- `DELETE /api/enrollments/:id` — unenroll / delete
+Note: legacy internal routes `/api/user` and `/api/user/:id` are also available.
 
----
-
-## Screenshots (Required)
-> Replace these with real screenshots and commit to GitHub in `/public/screenshots/`
-
-- Home page  
-  `public/screenshots/01-home.png`
-- Register  
-  `public/screenshots/02-register.png`
-- Login  
-  `public/screenshots/03-login.png`
-- Dashboard  
-  `public/screenshots/04-dashboard.png`
-- Courses list + search  
-  `public/screenshots/05-courses.png`
-- My Courses  
-  `public/screenshots/06-my-courses.png`
-- Admin: Courses CRUD  
-  `public/screenshots/07-admin-courses.png`
-- Admin: Users management  
-  `public/screenshots/08-admin-users.png`
-- Admin: Enrollments management  
-  `public/screenshots/09-admin-enrollments.png`
-
----
+### Enrollments
+- `GET /api/enrollments`
+- `POST /api/enrollments`
+- `PUT /api/enrollments/:id`
+- `DELETE /api/enrollments/:id`
 
 ## Local Setup (Development)
 ### 1) Install dependencies
 ```bash
 npm install
+```
+
+### 2) Configure environment
+Create/update `.env` in project root:
+```env
+MONGODB_URI=<your_mongodb_connection_string>
+JWT_SECRET=<your_random_secret>
+```
+
+### 3) Run development server
+```bash
+npm run dev
+```
+
+Open: `http://localhost:3000`
+
+## Admin Bootstrap
+Create first admin user (one-time):
+```bash
+curl -X POST http://localhost:3000/api/auth/seed-admin \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Admin User","email":"admin@example.com","password":"admin123"}'
+```
+
+Then login with that admin account.
+
+## Required Screenshots (for submission)
+Place actual screenshots in:
+- `public/screenshots/01-home.png`
+- `public/screenshots/02-register.png`
+- `public/screenshots/03-login.png`
+- `public/screenshots/04-dashboard.png`
+- `public/screenshots/05-courses.png`
+- `public/screenshots/06-my-courses.png`
+- `public/screenshots/07-admin-courses.png`
+- `public/screenshots/08-admin-users.png`
+- `public/screenshots/09-admin-enrollments.png`
+
+## Production Deployment (VM)
+### 1) Build app
+```bash
+npm run build
+```
+
+### 2) Start app with PM2
+```bash
+pm2 start npm --name skillup -- start
+pm2 save
+```
+
+### 3) Reverse proxy with Nginx
+Configure Nginx to proxy to Next.js app (default `localhost:3000`).
+
+## Submission Checklist
+- [ ] Working production URL on VM (no serverless)
+- [ ] Source code on GitHub
+- [ ] Complete README
+- [ ] Screenshots in repo
+- [ ] 5-minute demo video uploaded to YouTube (Unlisted)
+

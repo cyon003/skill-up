@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -7,12 +7,19 @@ import { Input } from "@/components/Input";
 export default function AdminEnrollments() {
   const [enrollments, setEnrollments] = useState([]);
   const [progressEdit, setProgressEdit] = useState({}); // {enrollmentId: value}
+  const [msg, setMsg] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     const res = await fetch("/api/enrollments");
     const data = await res.json();
+    if (!res.ok) {
+      setMsg(data.error || "Failed to load enrollments");
+      setEnrollments([]);
+      return;
+    }
+    setMsg("");
     setEnrollments(data.enrollments || []);
-  }
+  }, []);
 
   async function updateProgress(id) {
     const progress = Number(progressEdit[id] ?? 0);
@@ -34,7 +41,12 @@ export default function AdminEnrollments() {
     else load();
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -72,6 +84,10 @@ export default function AdminEnrollments() {
           </Card>
         ))}
       </div>
+      {msg && <p className="mt-4 text-sm text-red-600">{msg}</p>}
+      {!msg && enrollments.length === 0 && (
+        <p className="mt-4 text-sm text-slate-500">No enrollments found.</p>
+      )}
     </main>
   );
 }

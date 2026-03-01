@@ -2,7 +2,7 @@
 
 ## Team Members
 - Xavier (Project Lead) — https://github.com/cyon003
-- Member 2 — https://github.com/<member2-username>
+- 6611906 — https://github.com/Jake21Ryan
 - Member 3 — https://github.com/<member3-username>
 
 > (No student IDs required)
